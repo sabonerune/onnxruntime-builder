@@ -150,6 +150,35 @@ jobs:
               --compile_no_warning_as_error
               --x86
             release_config: Release
+          - artifact_name: ${{ inputs.target || 'onnxruntime' }}-win-arm64
+            os: windows-11-arm
+            spec_os: Windows
+            spec_arch: Arm64
+            build_opts: |-
+              --compile_no_warning_as_error
+              --cmake_extra_defines
+              onnxruntime_BUILD_UNIT_TESTS=OFF
+            release_config: Release
+          - artifact_name: ${{ inputs.target || 'onnxruntime' }}-win-arm64-dml
+            os: windows-11-arm
+            spec_os: Windows
+            spec_arch: Arm64
+            build_opts: |-
+              --compile_no_warning_as_error
+              --use_dml
+              --cmake_extra_defines
+              onnxruntime_BUILD_UNIT_TESTS=OFF
+            release_config: Release
+          - artifact_name: ${{ inputs.target || 'onnxruntime' }}-win-arm64-webgpu
+            os: windows-11-arm
+            spec_os: Windows
+            spec_arch: Arm64
+            build_opts: |-
+              --compile_no_warning_as_error
+              --use_webgpu
+              --cmake_extra_defines
+              onnxruntime_BUILD_UNIT_TESTS=OFF
+            release_config: Release
           - artifact_name: ${{ inputs.target || 'onnxruntime' }}-linux-x64-webgpu
             os: ubuntu-22.04
             spec_os: Linux
@@ -322,7 +351,8 @@ jobs:
     steps:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: "3.10"
+          # NOTE: Windows ARM64用のPython3.10が配布されていないので代わりに3.11をインストールする
+          python-version: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' && '3.11' || '3.10' }}
 
       - name: Version check (semver)
         run: |
