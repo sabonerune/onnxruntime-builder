@@ -220,6 +220,7 @@ jobs:
               --compile_no_warning_as_error
               --cmake_extra_defines
               CMAKE_OSX_ARCHITECTURES=arm64
+              CMAKE_OSX_DEPLOYMENT_TARGET=13.3
             release_config: Release
           - artifact_name: ${{ inputs.target || 'onnxruntime' }}-osx-x86_64
             os: macos-15-intel
@@ -229,6 +230,7 @@ jobs:
               --compile_no_warning_as_error
               --cmake_extra_defines
               CMAKE_OSX_ARCHITECTURES=x86_64
+              CMAKE_OSX_DEPLOYMENT_TARGET=13.3
             release_config: Release
           - artifact_name: ${{ inputs.target || 'onnxruntime' }}-osx-arm64-webgpu
             os: macos-14
@@ -239,6 +241,7 @@ jobs:
               --compile_no_warning_as_error
               --cmake_extra_defines
               CMAKE_OSX_ARCHITECTURES=arm64
+              CMAKE_OSX_DEPLOYMENT_TARGET=13.3
             release_config: Release
           - artifact_name: ${{ inputs.target || 'onnxruntime' }}-osx-x86_64-webgpu
             os: macos-15-intel
@@ -249,6 +252,7 @@ jobs:
               --compile_no_warning_as_error
               --cmake_extra_defines
               CMAKE_OSX_ARCHITECTURES=x86_64
+              CMAKE_OSX_DEPLOYMENT_TARGET=13.3
             release_config: Release
           - artifact_name: ${{ inputs.target || 'onnxruntime' }}-android-x64
             os: ubuntu-22.04
