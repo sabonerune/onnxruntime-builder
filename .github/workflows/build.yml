@@ -163,6 +163,35 @@ jobs:
               --cmake_extra_defines
               onnxruntime_BUILD_UNIT_TESTS=OFF
             release_config: Release
+          - artifact_name: ${{ inputs.target || 'onnxruntime' }}-win-arm64
+            os: windows-11-arm
+            spec_os: Windows
+            spec_arch: AArch64
+            build_opts: |-
+              --compile_no_warning_as_error
+              --cmake_extra_defines
+              onnxruntime_BUILD_UNIT_TESTS=OFF
+            release_config: Release
+          - artifact_name: ${{ inputs.target || 'onnxruntime' }}-win-arm64-dml
+            os: windows-11-arm
+            spec_os: Windows
+            spec_arch: AArch64
+            build_opts: |-
+              --compile_no_warning_as_error
+              --use_dml
+              --cmake_extra_defines
+              onnxruntime_BUILD_UNIT_TESTS=OFF
+            release_config: Release
+          - artifact_name: ${{ inputs.target || 'onnxruntime' }}-win-arm64-webgpu
+            os: windows-11-arm
+            spec_os: Windows
+            spec_arch: AArch64
+            build_opts: |-
+              --compile_no_warning_as_error
+              --use_webgpu
+              --cmake_extra_defines
+              onnxruntime_BUILD_UNIT_TESTS=OFF
+            release_config: Release
           - artifact_name: ${{ inputs.target || 'onnxruntime' }}-win-arm64ec
             os: windows-11-arm
             spec_os: Windows
