@@ -268,6 +268,45 @@ jobs:
               --cmake_extra_defines
               onnxruntime_BUILD_UNIT_TESTS=OFF
             release_config: Release
+          - artifact_name: ${{ inputs.target || 'onnxruntime' }}-linux-arm64-cuda
+            os: ubuntu-22.04-arm
+            spec_os: Linux
+            spec_arch: AArch64
+            gcc_version: "12"
+            symlink_workaround: true
+            cuda_version: 12.8.1
+            cuda_sub_packages: "[]" # デフォルト
+            cudnn_url: https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-sbsa/cudnn-linux-sbsa-9.8.0.87_cuda12-archive.tar.xz
+            build_opts: |-
+              --compile_no_warning_as_error
+              --use_cuda
+              --disable_contrib_ops # VOICEVOXではContrib Opsは使わないので無効化。ビルド時間の短縮のため。
+              --cmake_extra_defines
+              # 将来登場するGPUをサポートするにはPTXをバンドルする必要があるが、デフォルトではバンドルされないため明示的に指定する。onnxruntimeのデフォルト値は以下のURLを参照。
+              # ref: https://github.com/microsoft/onnxruntime/blob/v1.23.2/cmake/external/cuda_configuration.cmake#L117
+              "CMAKE_CUDA_ARCHITECTURES=60-real;70-real;75-real;80-real;86-real;89-real;90a-real;100a-real;120a-real;120-virtual"
+              onnxruntime_BUILD_UNIT_TESTS=OFF
+            release_config: Release
+          - artifact_name: ${{ inputs.target || 'onnxruntime' }}-linux-arm64-cuda-jetson
+            os: ubuntu-22.04-arm
+            spec_os: Linux
+            spec_arch: AArch64
+            gcc_version: "12"
+            symlink_workaround: true
+            cuda_version: 12.8.1
+            cuda_sub_packages: "[]" # デフォルト
+            cudnn_url: https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-aarch64/cudnn-linux-aarch64-9.8.0.87_cuda12-archive.tar.xz
+            build_opts: |-
+              --compile_no_warning_as_error
+              --use_cuda
+              --disable_contrib_ops # VOICEVOXではContrib Opsは使わないので無効化。ビルド時間の短縮のため。
+              --cmake_extra_defines
+              # 将来登場するGPUをサポートするにはPTXをバンドルする必要があるが、デフォルトではバンドルされないため明示的に指定する。onnxruntimeのデフォルト値は以下のURLを参照。
+              # ref: https://github.com/microsoft/onnxruntime/blob/v1.23.2/cmake/external/cuda_configuration.cmake#L117
+              # 62はJetson TX2、72はJetson Xavier、87はJetson Orin、110はJetson Thor。
+              "CMAKE_CUDA_ARCHITECTURES=62-real;72-real;87-real;110a-real;120-virtual"
+              onnxruntime_BUILD_UNIT_TESTS=OFF
+            release_config: Release
           - artifact_name: ${{ inputs.target || 'onnxruntime' }}-linux-arm64-webgpu
             os: ubuntu-22.04-arm
             spec_os: Linux
@@ -487,12 +526,28 @@ jobs:
           sudo bash cmake.sh --skip-license --prefix=/usr/local
 
       - name: Set up CUDA
-        if: steps.cache-build-result.outputs.cache-hit != 'true' && matrix.cuda_version && matrix.cudnn_url
+        if: steps.cache-build-result.outputs.cache-hit != 'true' && matrix.cuda_version && matrix.cudnn_url && !contains(matrix.artifact_name, 'jetson')
         uses: Jimver/cuda-toolkit@b8bf9c6c28f8a92fbb04dcfcaee872e60c57462d # v0.2.36
         with:
           cuda: ${{ matrix.cuda_version }}
           sub-packages: ${{ matrix.cuda_sub_packages }}
           method: network
+
+      - name: Set up CUDA 12.8 for Jetson
+        if: steps.cache-build-result.outputs.cache-hit != 'true' && matrix.cuda_version && matrix.cudnn_url && contains(matrix.artifact_name, 'jetson')
+        run: |
+          keyring_name=cuda-keyring_1.1-1_all.deb
+          keyring_url="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/$keyring_name"
+          curl -fL --retry 3 --retry-delay 5 "$keyring_url" > "$keyring_name"
+          sudo dpkg -i "$keyring_name"
+          rm "$keyring_name"
+          sudo apt-get update
+          sudo apt-get -y install cuda-toolkit-12-8
+
+          cuda_path=/usr/local/cuda-12.8
+          echo "PATH=$cuda_path/bin${PATH:+:${PATH}}" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$cuda_path/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> "$GITHUB_ENV"
+          echo "CUDA_PATH=$cuda_path" >> "$GITHUB_ENV"
 
       - name: Set `$CUDA_HOME`
         if: steps.cache-build-result.outputs.cache-hit != 'true' && matrix.cuda_version && matrix.cudnn_url
